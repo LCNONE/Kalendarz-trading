@@ -1,0 +1,165 @@
+
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <title>Kalendarz Tradingowy – DAX M5 / Nasdaq M15 / HTS DAX / HTS Nasdaq</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root{
+      --bg:#0f1115; --panel:#161922; --grid:#262a38; --text:#e8ecf1; --muted:#9aa3b2;
+      --green:#2ecc71; --red:#ff5d5d; --blue:#4c8bf5;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,Arial}
+    h1{margin:18px 0;text-align:center}
+    .controls{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+    button{background:var(--panel);color:var(--text);border:1px solid var(--grid);border-radius:10px;padding:8px 12px;cursor:pointer}
+    button:hover{border-color:var(--blue)}
+    .calendar{width:min(1100px,94vw);margin:0 auto 24px;background:var(--panel);border:1px solid var(--grid);border-radius:14px;overflow:hidden}
+    .month-caption{padding:8px 12px;border-bottom:1px solid var(--grid);color:var(--muted);text-align:left}
+    table{width:100%;border-collapse:collapse}
+    th,td{border:1px solid var(--grid);vertical-align:top}
+    th{padding:10px 6px;color:var(--muted);font-weight:600}
+    td.day{width:14.28%;height:140px;padding:6px;position:relative}
+    .dnum{position:absolute;top:6px;left:6px;color:var(--muted);font-size:12px}
+    .track{margin-top:22px;display:grid;gap:6px}
+    .row{display:grid;grid-template-columns:92px 1fr;align-items:center;gap:8px}
+    .label{font-size:12px;color:var(--text);text-align:right;cursor:pointer;user-select:none}
+    .pill{height:22px;border:1px solid var(--grid);border-radius:999px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:0;user-select:none}
+    .pill.green{background:rgba(46,204,113,.18);border-color:rgba(46,204,113,.5)}
+    .pill.red{background:rgba(255,93,93,.18);border-color:rgba(255,93,93,.5)}
+    .pill.blue{background:rgba(76,139,245,.18);border-color:rgba(76,139,245,.55)}
+    .legend{width:min(1100px,94vw);margin:0 auto 24px;display:flex;gap:12px;flex-wrap:wrap;color:var(--muted);font-size:13px}
+    .sw{width:10px;height:10px;border-radius:50%}
+    .sw.green{background:var(--green)} .sw.red{background:var(--red)} .sw.blue{background:var(--blue)}
+    @media (max-width:720px){
+      .row{grid-template-columns:86px 1fr}
+      td.day{height:160px}
+    }
+  </style>
+</head>
+<body>
+  <h1>Kalendarz Tradingowy</h1>
+  <div class="controls">
+    <button id="prev">←</button>
+    <div id="monthYear" aria-live="polite"></div>
+    <button id="next">→</button>
+  </div>
+  <div class="calendar">
+    <div class="month-caption">Kliknij w kapsułkę lub etykietę, aby zmienić kolor: puste → zielony → czerwony → niebieski → puste.</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Pn</th><th>Wt</th><th>Śr</th><th>Cz</th><th>Pt</th><th>So</th><th>Nd</th>
+        </tr>
+      </thead>
+      <tbody id="grid"></tbody>
+    </table>
+  </div>
+
+  <div class="legend">
+    <span><span class="sw green"></span> zielony</span>
+    <span><span class="sw red"></span> czerwony</span>
+    <span><span class="sw blue"></span> niebieski</span>
+    <span>— etykiety: DAX M5, Nasdaq M15, HTS DAX, HTS Nasdaq</span>
+  </div>
+
+<script>
+(function(){
+  // Zmienione etykiety – bez gołego "HTS"
+  const labels = ["DAX M5","Nasdaq M15","HTS DAX","HTS Nasdaq"];
+  const cycle = ["none","green","red","blue"];
+  let cur = new Date(); cur.setDate(1);
+
+  const grid = document.getElementById('grid');
+  const monthYear = document.getElementById('monthYear');
+  document.getElementById('prev').addEventListener('click', ()=>{cur.setMonth(cur.getMonth()-1); render();});
+  document.getElementById('next').addEventListener('click', ()=>{cur.setMonth(cur.getMonth()+1); render();});
+
+  function pad(n){return String(n).padStart(2,'0');}
+  function key(y,m,d,label){ return `kt:${y}-${pad(m)}-${pad(d)}:${label}`; }
+
+  function render(){
+    const y = cur.getFullYear();
+    const m = cur.getMonth(); // 0-11
+    monthYear.textContent = `${["Styczeń","Luty","Marzec","Kwiecień","Maj","Czerwiec","Lipiec","Sierpień","Wrzesień","Październik","Listopad","Grudzień"][m]} ${y}`;
+
+    grid.innerHTML = "";
+    const first = new Date(y,m,1);
+    const last = new Date(y,m+1,0);
+    const startOffset = (first.getDay()+6)%7; // Monday-first
+    const days = last.getDate();
+    let row;
+
+    // leading blanks
+    if(startOffset>0){
+      row = document.createElement('tr');
+      for(let i=0;i<startOffset;i++){
+        const td = document.createElement('td'); td.className='day'; row.appendChild(td);
+      }
+      grid.appendChild(row);
+    }
+
+    for(let d=1; d<=days; d++){
+      if(!row || row.children.length===7){ row = document.createElement('tr'); grid.appendChild(row); }
+      const td = document.createElement('td'); td.className='day';
+      const dnum = document.createElement('div'); dnum.className='dnum'; dnum.textContent = d; td.appendChild(dnum);
+
+      const track = document.createElement('div'); track.className='track';
+      labels.forEach(label=>{
+        const r = document.createElement('div'); r.className='row';
+        const lab = document.createElement('div'); lab.className='label'; lab.textContent = label;
+        const pill = document.createElement('div'); pill.className='pill'; pill.setAttribute('role','button'); pill.setAttribute('tabindex','0');
+        const k = key(y,m+1,d,label);
+
+        // apply saved
+        applyState(pill, localStorage.getItem(k) || 'none');
+
+        const handler = (ev)=>{
+          ev.stopPropagation();
+          const next = nextState(pill);
+          localStorage.setItem(k, next);
+          applyState(pill, next);
+        };
+        pill.addEventListener('click', handler);
+        lab.addEventListener('click', handler);
+        pill.addEventListener('keydown', (e)=>{ if(e.key==='Enter' || e.key===' '){ e.preventDefault(); handler(e);} });
+
+        r.appendChild(lab);
+        r.appendChild(pill);
+        track.appendChild(r);
+      });
+      td.appendChild(track);
+      row.appendChild(td);
+    }
+
+    // trailing blanks
+    if(row && row.children.length<7){
+      while(row.children.length<7){
+        const td = document.createElement('td'); td.className='day'; row.appendChild(td);
+      }
+    }
+  }
+
+  function applyState(el, state){
+    el.classList.remove('green','red','blue'); // usuń tylko znane klasy
+    if(state==='green') el.classList.add('green');
+    if(state==='red') el.classList.add('red');
+    if(state==='blue') el.classList.add('blue');
+    // brak napisów – wyłącznie kolor kapsułki
+  }
+
+  function nextState(el){
+    const has = el.classList.contains('green') ? 'green' :
+                el.classList.contains('red') ? 'red' :
+                el.classList.contains('blue') ? 'blue' : 'none';
+    const idx = cycle.indexOf(has);
+    return cycle[(idx+1)%cycle.length];
+  }
+
+  render();
+})();
+</script>
+</body>
+</html>
