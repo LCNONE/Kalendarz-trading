@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <title>Kalendarz Tradingowy 2025</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; }
+        table { border-collapse: collapse; margin: 20px auto; }
+        td { width: 100px; height: 50px; border: 1px solid #ccc; cursor: pointer; text-align: center; vertical-align: middle; }
+        .green { background-color: lightgreen; }
+        .red { background-color: lightcoral; }
+        .blue { background-color: lightblue; }
+        h2 { margin-top: 40px; }
+    </style>
+</head>
+<body>
+    <h1>Kalendarz Tradingowy 2025</h1>
+    
+    <h2>DAX M5</h2>
+    <table id="dax-m5"></table>
+
+    <h2>NASDAQ M15</h2>
+    <table id="nasdaq-m15"></table>
+
+    <h2>HTS DAX</h2>
+    <table id="hts-dax"></table>
+
+    <h2>HTS NASDAQ</h2>
+    <table id="hts-nasdaq"></table>
+
+    <h2>HTS Złoto</h2>
+    <table id="hts-gold"></table>
+
+    <script>
+        function createTable(id) {
+            const table = document.getElementById(id);
+            for (let i = 1; i <= 31; i++) {
+                const row = table.insertRow();
+                for (let j = 1; j <= 1; j++) {
+                    const cell = row.insertCell();
+                    cell.textContent = i;
+                    cell.addEventListener("click", function () {
+                        if (cell.classList.contains("green")) {
+                            cell.classList.remove("green");
+                            cell.classList.add("red");
+                        } else if (cell.classList.contains("red")) {
+                            cell.classList.remove("red");
+                            cell.classList.add("blue");
+                        } else if (cell.classList.contains("blue")) {
+                            cell.classList.remove("blue");
+                        } else {
+                            cell.classList.add("green");
+                        }
+                    });
+                }
+            }
+        }
+
+        createTable("dax-m5");
+        createTable("nasdaq-m15");
+        createTable("hts-dax");
+        createTable("hts-nasdaq");
+        createTable("hts-gold");
+    </script>
+</body>
+</html>
