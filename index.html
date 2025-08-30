@@ -2,65 +2,103 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>Kalendarz Tradingowy 2025</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kalendarz Tradingowy</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; }
-        table { border-collapse: collapse; margin: 20px auto; }
-        td { width: 100px; height: 50px; border: 1px solid #ccc; cursor: pointer; text-align: center; vertical-align: middle; }
-        .green { background-color: lightgreen; }
-        .red { background-color: lightcoral; }
-        .blue { background-color: lightblue; }
-        h2 { margin-top: 40px; }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+        }
+        .day-field {
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
+            background-color: white;
+        }
+        .day-field:hover {
+            transform: scale(1.03);
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+        .green { background-color: #34d399; }
+        .red { background-color: #f87171; }
+        .blue { background-color: #60a5fa; }
     </style>
 </head>
-<body>
-    <h1>Kalendarz Tradingowy 2025</h1>
-    
-    <h2>DAX M5</h2>
-    <table id="dax-m5"></table>
+<body class="bg-gray-100 p-8">
 
-    <h2>NASDAQ M15</h2>
-    <table id="nasdaq-m15"></table>
-
-    <h2>HTS DAX</h2>
-    <table id="hts-dax"></table>
-
-    <h2>HTS NASDAQ</h2>
-    <table id="hts-nasdaq"></table>
-
-    <h2>HTS Złoto</h2>
-    <table id="hts-gold"></table>
+    <div class="max-w-7xl mx-auto">
+        <h1 class="text-4xl font-bold text-center text-gray-800 mb-8">Kalendarz Tradingowy</h1>
+        
+        <div id="calendar-container" class="grid grid-cols-7 gap-4">
+            <!-- Tygodniowe nagłówki -->
+            <div class="col-span-1 p-4 text-center font-semibold text-gray-700">Pon</div>
+            <div class="col-span-1 p-4 text-center font-semibold text-gray-700">Wt</div>
+            <div class="col-span-1 p-4 text-center font-semibold text-gray-700">Śr</div>
+            <div class="col-span-1 p-4 text-center font-semibold text-gray-700">Czw</div>
+            <div class="col-span-1 p-4 text-center font-semibold text-gray-700">Pt</div>
+            <div class="col-span-1 p-4 text-center font-semibold text-gray-700">Sob</div>
+            <div class="col-span-1 p-4 text-center font-semibold text-gray-700">Ndz</div>
+        </div>
+    </div>
 
     <script>
-        function createTable(id) {
-            const table = document.getElementById(id);
-            for (let i = 1; i <= 31; i++) {
-                const row = table.insertRow();
-                for (let j = 1; j <= 1; j++) {
-                    const cell = row.insertCell();
-                    cell.textContent = i;
-                    cell.addEventListener("click", function () {
-                        if (cell.classList.contains("green")) {
-                            cell.classList.remove("green");
-                            cell.classList.add("red");
-                        } else if (cell.classList.contains("red")) {
-                            cell.classList.remove("red");
-                            cell.classList.add("blue");
-                        } else if (cell.classList.contains("blue")) {
-                            cell.classList.remove("blue");
-                        } else {
-                            cell.classList.add("green");
+        const calendarContainer = document.getElementById('calendar-container');
+        const daysInMonth = 31;
+
+        const fields = [
+            'Dax m5',
+            'Złoto m15',
+            'Nasdaq m15',
+            'HTS DAX',
+            'HTS ZŁOTO',
+            'HTS NASDAQ'
+        ];
+
+        function generateCalendar() {
+            for (let i = 1; i <= daysInMonth; i++) {
+                const dayDiv = document.createElement('div');
+                dayDiv.className = 'col-span-1 bg-white rounded-lg shadow-md p-4 flex flex-col justify-between';
+
+                const dayHeader = document.createElement('div');
+                dayHeader.className = 'font-bold text-lg mb-2 text-gray-800';
+                dayHeader.textContent = i;
+                dayDiv.appendChild(dayHeader);
+
+                const fieldsContainer = document.createElement('div');
+
+                fields.forEach(field => {
+                    const fieldDiv = document.createElement('div');
+                    fieldDiv.className = 'day-field text-gray-600 border border-gray-200 rounded-md p-2 mb-2 text-sm select-none';
+                    fieldDiv.textContent = field;
+                    fieldDiv.dataset.color = 'none';
+
+                    fieldDiv.addEventListener('click', () => {
+                        let currentColor = fieldDiv.dataset.color;
+                        let nextColor = '';
+                        if (currentColor === 'none') {
+                            nextColor = 'green';
+                        } else if (currentColor === 'green') {
+                            nextColor = 'red';
+                        } else if (currentColor === 'red') {
+                            nextColor = 'blue';
+                        } else if (currentColor === 'blue') {
+                            nextColor = 'none';
                         }
+                        fieldDiv.dataset.color = nextColor;
+                        fieldDiv.className = `day-field text-gray-600 border border-gray-200 rounded-md p-2 mb-2 text-sm ${nextColor}`;
                     });
-                }
+                    
+                    fieldsContainer.appendChild(fieldDiv);
+                });
+
+                dayDiv.appendChild(fieldsContainer);
+
+                calendarContainer.appendChild(dayDiv);
             }
         }
 
-        createTable("dax-m5");
-        createTable("nasdaq-m15");
-        createTable("hts-dax");
-        createTable("hts-nasdaq");
-        createTable("hts-gold");
+        generateCalendar();
     </script>
 </body>
 </html>
